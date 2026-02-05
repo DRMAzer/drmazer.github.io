@@ -3,75 +3,250 @@
 <head>
     <meta name="monetag" content="479eb9d396c287f832620e18e5f4f823">
 
-    <script src="https://quge5.com/88/tag.min.js" data-zone="10565122" async data-cfasync="false"></script>
+    <!-- In-Page Push (متحكم في مكانه) -->
+    <script>
+    (function () {
+        var s = document.createElement("script");
+        s.src = "https://quge5.com/88/tag.min.js";
+        s.dataset.zone = "10565122";
+        s.async = true;
+        s.dataset.cfasync = "false";
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("ad-bottom").appendChild(s);
+        });
+    })();
+    </script>
 
-    <script>(function(s){s.dataset.zone='10565086',s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <!-- Vignette (إعلان التخطي – يفضل في head) -->
+    <script>
+    (function(s){
+        s.dataset.zone='10565086';
+        s.src='https://gizokraijaw.net/vignette.min.js';
+    })([document.documentElement, document.body]
+        .filter(Boolean)
+        .pop()
+        .appendChild(document.createElement('script')));
+    </script>
 
-    <script>(function(s){s.dataset.zone='10565108',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <!-- In-Page Push الثاني (سابينه زي ما هو) -->
+    <script>
+    (function(s){
+        s.dataset.zone='10565108';
+        s.src='https://nap5k.com/tag.min.js';
+    })([document.documentElement, document.body]
+        .filter(Boolean)
+        .pop()
+        .appendChild(document.createElement('script')));
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrMazer | High Speed Ads</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <style>
-        :root { --neon-pink: #ff71ce; --neon-blue: #01cdfe; --dark-bg: #050112; --electric-cyan: #00ffff; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--dark-bg); color: white; margin: 0; overflow-x: hidden; }
-        .header-scene { position: relative; display: flex; justify-content: center; align-items: center; padding: 80px 0; background: radial-gradient(circle, #0a0b2e 0%, var(--dark-bg) 90%); min-height: 250px; overflow: hidden; }
-        .neon-rope { position: absolute; width: 200%; height: 2px; background: linear-gradient(90deg, transparent, var(--electric-cyan), var(--electric-cyan), transparent); box-shadow: 0 0 15px var(--electric-cyan), 0 0 30px var(--electric-cyan); animation: electric-flow 10s linear infinite; }
-        .rope1 { top: 30%; transform: rotate(-1deg); animation-duration: 7s; }
-        .rope2 { top: 50%; transform: rotate(0.5deg); animation-duration: 10s; animation-direction: reverse; }
-        .rope3 { top: 70%; transform: rotate(-0.5deg); animation-duration: 8s; }
-        @keyframes electric-flow { 0% { left: -100%; } 100% { left: 100%; } }
-        .top-static { display: flex; justify-content: center; gap: 20px; padding: 15px; }
-        .neon-ring { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); overflow: hidden; }
-        .neon-ring img { width: 100%; height: 100%; object-fit: cover; }
-        .tg-neon { width: 45px; height: 45px; border: 2px solid var(--neon-pink); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--neon-pink); margin: 5px auto; animation: rotate 5s linear infinite; text-decoration: none; font-size: 20px; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .khana-title { text-align: center; color: var(--neon-blue); font-family: 'Montserrat'; font-size: 1.8rem; margin: 40px 0 10px 0; text-shadow: 0 0 10px var(--neon-blue); }
-        .infinite-slider { display: flex; overflow-x: auto; gap: 45px; padding: 60px 30px; scroll-behavior: smooth; scrollbar-width: none; align-items: center; }
-        .art-card { min-width: 250px; transition: 0.6s ease; filter: blur(10px); transform: scale(0.85); opacity: 0.5; position: relative; }
-        .art-card.active { filter: blur(0); transform: scale(1.1); opacity: 1; z-index: 100; box-shadow: 0 0 35px var(--neon-blue); }
-        .art-card img { width: 100%; height: 380px; border-radius: 20px; border: 2px solid var(--neon-blue); object-fit: cover; }
-        .btn-down { background: var(--neon-pink); color: white; border: none; padding: 14px; width: 100%; border-radius: 12px; cursor: pointer; margin-top: 15px; font-weight: 900; text-decoration: none; display: block; text-align: center; box-shadow: 0 0 10px var(--neon-pink); }
+        :root {
+            --neon-pink: #ff71ce;
+            --neon-blue: #01cdfe;
+            --dark-bg: #050112;
+            --electric-cyan: #00ffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .header-scene {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 0;
+            background: radial-gradient(circle, #0a0b2e 0%, var(--dark-bg) 90%);
+            min-height: 250px;
+            overflow: hidden;
+        }
+
+        .neon-rope {
+            position: absolute;
+            width: 200%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--electric-cyan), var(--electric-cyan), transparent);
+            box-shadow: 0 0 15px var(--electric-cyan), 0 0 30px var(--electric-cyan);
+            animation: electric-flow 10s linear infinite;
+        }
+
+        .rope1 { top: 30%; animation-duration: 7s; }
+        .rope2 { top: 50%; animation-duration: 10s; animation-direction: reverse; }
+        .rope3 { top: 70%; animation-duration: 8s; }
+
+        @keyframes electric-flow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .top-static {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+        }
+
+        .neon-ring {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+            overflow: hidden;
+        }
+
+        .neon-ring img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .tg-neon {
+            width: 45px;
+            height: 45px;
+            border: 2px solid var(--neon-pink);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neon-pink);
+            margin: 10px auto;
+            animation: rotate 5s linear infinite;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .khana-title {
+            text-align: center;
+            color: var(--neon-blue);
+            font-family: 'Montserrat';
+            font-size: 1.8rem;
+            margin: 40px 0 10px 0;
+        }
+
+        .infinite-slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 45px;
+            padding: 60px 30px;
+            scrollbar-width: none;
+            align-items: center;
+        }
+
+        .art-card {
+            min-width: 250px;
+            transition: 0.6s ease;
+            filter: blur(10px);
+            transform: scale(0.85);
+            opacity: 0.5;
+        }
+
+        .art-card.active {
+            filter: blur(0);
+            transform: scale(1.1);
+            opacity: 1;
+            box-shadow: 0 0 35px var(--neon-blue);
+        }
+
+        .art-card img {
+            width: 100%;
+            height: 380px;
+            border-radius: 20px;
+            border: 2px solid var(--neon-blue);
+            object-fit: cover;
+        }
+
+        .btn-down {
+            background: var(--neon-pink);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 900;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        /* مكان الإعلان تحت */
+        #ad-bottom {
+            width: 100%;
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+        }
     </style>
 </head>
+
 <body>
+
     <div class="header-scene">
         <div class="neon-rope rope1"></div>
         <div class="neon-rope rope2"></div>
         <div class="neon-rope rope3"></div>
     </div>
+
     <div class="top-static">
         <div class="neon-ring"><img src="halim.png"></div>
         <div class="neon-ring"><img src="najat.png"></div>
         <div class="neon-ring"><img src="farid.png"></div>
     </div>
-    <a href="https://t.me/your_telegram" class="tg-neon"><i class="fa-brands fa-telegram"></i></a>
+
+    <a href="https://t.me/your_telegram" class="tg-neon">
+        <i class="fa-brands fa-telegram"></i>
+    </a>
+
     <h2 class="khana-title">Monetized Assets</h2>
+
     <div class="infinite-slider" id="slider1"></div>
+
     <script>
         const images = [1,2,3,4,5,6,7,8,9,10];
         const slider = document.getElementById('slider1');
-        images.forEach((id) => {
+
+        images.forEach(id => {
             const path = `led${id}.png`;
             slider.innerHTML += `
                 <div class="art-card">
                     <img src="${path}">
-                    <a href="${path}" download="${path}" class="btn-down">Free Download</a>
+                    <a href="${path}" download class="btn-down">Free Download</a>
                 </div>`;
         });
+
         slider.addEventListener('scroll', () => {
             const cards = slider.querySelectorAll('.art-card');
-            const centerX = slider.scrollLeft + (slider.offsetWidth / 2);
+            const centerX = slider.scrollLeft + slider.offsetWidth / 2;
             cards.forEach(card => {
-                const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
-                if (Math.abs(centerX - cardCenter) < 140) { card.classList.add('active'); } 
-                else { card.classList.remove('active'); }
+                const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+                card.classList.toggle('active', Math.abs(centerX - cardCenter) < 140);
             });
         });
-        setTimeout(() => { slider.scrollLeft = 100; }, 500);
+
+        setTimeout(() => slider.scrollLeft = 100, 500);
     </script>
+
+    <!-- 👇 هنا الإعلان بقى تحت -->
+    <div id="ad-bottom"></div>
+
 </body>
 </html>
