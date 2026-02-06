@@ -9,7 +9,7 @@ import requests
 API_TOKEN = '8211772439:AAERwOdOwLqbu37hMvmkNPJCATByrcoFc7U'
 CHANNEL_ID = '@midosaadoffichall' 
 CHANNEL_LINK = "https://t.me/midosaadoffichall"
-ADMIN_ID = 6932467140 
+ADMIN_ID = 8574641551 
 WEB_APP_URL = "https://drmazer.github.io"
 
 bot = telebot.TeleBot(API_TOKEN)
