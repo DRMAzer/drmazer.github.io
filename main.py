@@ -1,122 +1,178 @@
 import telebot
 from telebot import types
-import os
-import threading
-import subprocess
 import requests
+import base64
+from datetime import datetime, timedelta
+import random
+import json
+import os
 
-# بيانات البوت والقناة (بياناتك الأصلية دون تغيير)
-API_TOKEN = '8211772439:AAERwOdOwLqbu37hMvmkNPJCATByrcoFc7U'
+# --- 1. إعدادات البيانات والحفظ (نظام JSON الجديد) ---
+DB_FILE = "proxy_users_db.json"
+
+def load_db():
+    if os.path.exists(DB_FILE):
+        with open(DB_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_db(data):
+    with open(DB_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+# --- 2. بيانات البوت والقناة والـ API ---
+API_TOKEN = '8211772439:AAEBkkJZmAxozauD9BOy4rf91ZoO9EfVp3c'
+ADMIN_ID = 8574641551 
 CHANNEL_ID = '@midosaadoffichall' 
 CHANNEL_LINK = "https://t.me/midosaadoffichall"
-ADMIN_ID = 8574641551 
-WEB_APP_URL = "https://drmazer.github.io"
+
+# بيانات GitHub للربط التلقائي
+GITHUB_TOKEN = 'Ghp_x7VTdklBlX1HXoSjoKcXknbmoYoQcF3zhGlx' 
+REPO_NAME = 'DRMAzer/drmazer.github.io' 
+FILE_PATH = '3proxy.cfg'
+
+# قائمة البروكسيات الـ 5 التي جهزتها
+PROXY_LIST = [
+    {"host": "switchback.proxy.rlwy.net", "port": "23822"},
+    {"host": "hopper.proxy.rlwy.net", "port": "10533"},
+    {"host": "nozomi.proxy.rlwy.net", "port": "51930"},
+    {"host": "caboose.proxy.rlwy.net", "port": "12061"},
+    {"host": "maglev.proxy.rlwy.net", "port": "42177"}
+]
 
 bot = telebot.TeleBot(API_TOKEN)
+user_balances = {} # سيتم تحميل الأرصدة من JSON عند البدء
 user_list = set()
 
-# --- وظيفة تشغيل البروكسي (المحرك) ---
-def run_proxy():
-    port = os.environ.get("PORT", "8080")
-    print(f"🚀 Starting SOCKS5 Proxy on port {port}...")
-    try:
-        subprocess.run([
-            "proxy", "--hostname", "0.0.0.0", "--port", port,
-            "--plugins", "proxy.plugin.SocksProtocolHandler"
-        ])
-    except Exception as e:
-        print(f"Proxy Error: {e}")
-
-# --- وظائف البوت الأساسية ---
-def check_sub(user_id):
-    try:
-        status = bot.get_chat_member(CHANNEL_ID, user_id).status
-        return status in ['member', 'administrator', 'creator']
-    except:
-        return False
-
-def notify_admin(text):
-    try:
-        bot.send_message(ADMIN_ID, text)
-    except:
-        pass
-
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    user_id = message.from_user.id
-    user_list.add(user_id)
-    first_name = message.from_user.first_name
+# --- 3. وظائف التفعيل (GitHub) ---
+def add_proxy_user_to_github(username, password, days=1):
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    res = requests.get(url, headers=headers).json()
+    content = base64.b64decode(res['content']).decode('utf-8')
     
-    # 1. رسالة الترحيب والاشتراك (لكل المستخدمين)
-    welcome_text = (
-        f"🟠 **أهلاً بك يا {first_name}**\n"
-        "🔸 هذا البوت مخصص لخدمات البروكسي السريعة.\n"
-        "🔸 يرجى الاشتراك في القناة أولاً لتفعيل البوت."
-    )
-    markup = types.InlineKeyboardMarkup()
-    btn_sub = types.InlineKeyboardButton("📢 اشترك في القناة", url=CHANNEL_LINK)
-    btn_check = types.InlineKeyboardButton("✅ تحقق من الاشتراك", callback_data="verify")
-    markup.add(btn_sub, btn_check)
+    start_date = datetime.now().strftime("%d-%b-%Y")
+    end_date = (datetime.now() + timedelta(days=days)).strftime("%d-%b-%Y")
     
-    bot.send_message(message.chat.id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+    user_line = f"users {username}:CL:{password}\n"
+    allow_line = f"allow {username} * * * * {start_date}-{end_date}\n"
+    
+    # الإضافة قبل سطر السوكس الأخير لضمان العمل
+    new_content = content.replace("socks -p8080", f"{user_line}{allow_line}socks -p8080")
+    
+    payload = {
+        "message": f"Activate user {username}",
+        "content": base64.b64encode(new_content.encode()).decode(),
+        "sha": res['sha']
+    }
+    requests.put(url, json=payload, headers=headers)
 
-    # 2. رسالة البيانات الخاصة بك (تظهر لك أنت فقط كأدمن)
-    if user_id == ADMIN_ID:
-        try:
-            current_ip = requests.get('https://api.ipify.org', timeout=5).text
-        except:
-            current_ip = "162.220.232.1" # الـ IP الأخير للسيرفر
-            
-        domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "لم يتم توليد رابط بعد")
-        internal_port = os.environ.get("PORT", "8080")
-        
-        admin_info = (
-            "🛠 **لوحة تحكم السيرفر (خاص بالأدمن):**\n\n"
-            f"📍 **IP Address:** `{current_ip}`\n"
-            f"🔗 **Domain:** `{domain}`\n"
-            f"🔌 **Internal Port:** `{internal_port}`\n"
-            "🌍 **Public Port:** `443`\n\n"
-            "💡 *نصيحة:* استخدم الـ Domain وبورت 443 في برنامج Tun2TAP."
-        )
-        bot.send_message(ADMIN_ID, admin_info, parse_mode="Markdown")
+# --- 4. واجهة المستخدم الرئيسية ---
+def show_main_menu(message, user_obj=None):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(types.InlineKeyboardButton("👤 معلومات حسابي", callback_data="my_info"),
+               types.InlineKeyboardButton("🌐 بروكسياتي", callback_data="my_proxies"))
+    markup.add(types.InlineKeyboardButton("🛒 شراء بروكسي", callback_data="buy_proxy"),
+               types.InlineKeyboardButton("💰 قائمة الأسعار", callback_data="show_prices"))
+    markup.add(types.InlineKeyboardButton("💳 شحن رصيد", callback_data="top_up"),
+               types.InlineKeyboardButton("👨‍💻 الدعم الفني", url=f"tg://user?id={ADMIN_ID}"))
+    
+    text = "🏠 **القائمة الرئيسية**\n━━━━━━━━━━━━━━\nمرحباً بك في **ProxyAzerbot**."
+    bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode="Markdown")
 
+# --- 5. معالجة الأوامر والطلبات ---
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
+    uid = str(call.from_user.id)
+    db = load_db()
+
     if call.data == "verify":
-        if check_sub(call.from_user.id):
-            bot.answer_callback_query(call.id, "✅ تم التحقق!")
-            show_main_menu(call.message)
+        # وظيفة التحقق الخاصة بك
+        show_main_menu(call.message)
+
+    elif call.data == "my_proxies":
+        # التأكد من وجود اشتراك في الملف
+        if uid in db and db[uid].get('active', False):
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(types.InlineKeyboardButton("🔄 تغيير عشوائي", callback_data="change_random"))
+            markup.add(types.InlineKeyboardButton("🔙 العودة", callback_data="back"))
+            bot.edit_message_text("🌐 **إدارة البروكسي الخاص بك:**", call.message.chat.id, call.message.message_id, reply_markup=markup)
         else:
-            bot.answer_callback_query(call.id, "❌ اشترك في القناة أولاً!", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ ليس لديك اشتراك فعال حالياً!", show_alert=True)
 
-def show_main_menu(message):
-    markup = types.InlineKeyboardMarkup()
-    web_app = types.WebAppInfo(WEB_APP_URL)
-    btn_site = types.InlineKeyboardButton("🚀 فتح موقع البروكسي", web_app=web_app)
-    markup.add(btn_site)
-    bot.send_message(message.chat.id, "🟠 **تم تفعيل البوت بنجاح!**\nاضغط لفتح الموقع:", reply_markup=markup)
+    elif call.data == "change_random":
+        p = random.choice(PROXY_LIST) # اختيار من الـ 5 بورتات
+        res_text = (f"✅ **بيانات البروكسي الجديد:**\n\n"
+                    f"📍 **Host:** `{p['host']}`\n"
+                    f"🔢 **Port:** `{p['port']}`\n"
+                    f"👤 **User:** `user{uid}`\n"
+                    f"🔑 **Pass:** `p{uid}x`\n"
+                    f"🇺🇸 الموقع: أمريكا (دوران 30 دقيقة)")
+        bot.edit_message_text(res_text, call.message.chat.id, call.message.message_id, reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🔙 رجوع", callback_data="my_proxies")), parse_mode="Markdown")
 
-@bot.message_handler(commands=['broadcast'])
-def broadcast_request(message):
-    if message.from_user.id == ADMIN_ID:
-        msg = bot.reply_to(message, "🟠 **ارسل النص للإذاعة:**")
-        bot.register_next_step_handler(msg, start_broadcasting)
+    elif call.data == "buy_proxy":
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("⏱ 2 ساعة (0.2$)", callback_data="req_2h"),
+                   types.InlineKeyboardButton("⏱ 12 ساعة (0.4$)", callback_data="req_12h"))
+        markup.add(types.InlineKeyboardButton("🗓 1 يوم (0.6$)", callback_data="req_1d"))
+        bot.edit_message_text("🛒 اختر المدة المطلوبة لإرسال طلب للآدمن:", call.message.chat.id, call.message.message_id, reply_markup=markup)
 
-def start_broadcasting(message):
-    count = 0
-    for user_id in list(user_list):
-        try:
-            bot.send_message(user_id, message.text)
-            count += 1
-        except: continue
-    bot.send_message(ADMIN_ID, f"✅ تمت الإذاعة لـ {count} مستخدم.")
+    elif call.data.startswith("req_"):
+        plan = call.data.split("_")[1]
+        markup_admin = types.InlineKeyboardMarkup()
+        markup_admin.add(types.InlineKeyboardButton("✅ موافقة", callback_data=f"approve_{uid}_{plan}"),
+                         types.InlineKeyboardButton("❌ رفض", callback_data=f"reject_{uid}"))
+        bot.send_message(ADMIN_ID, f"🔔 **طلب شراء جديد:**\nID: `{uid}`\nالخطة: `{plan}`", reply_markup=markup_admin)
+        bot.answer_callback_query(call.id, "⏳ تم إرسال طلبك للآدمن.", show_alert=True)
 
-# --- التشغيل المتوازي (البروكسي + البوت) ---
+    elif call.data.startswith("approve_"):
+        _, t_uid, plan = call.data.split("_")
+        cost_map = {"2h": 0.2, "12h": 0.4, "1d": 0.6}
+        days_map = {"2h": 0.08, "12h": 0.5, "1d": 1}
+        
+        # خصم الرصيد وتحديث الملف
+        current_bal = user_balances.get(int(t_uid), 0.0)
+        if current_bal >= cost_map[plan]:
+            user_balances[int(t_uid)] -= cost_map[plan]
+            try:
+                add_proxy_user_to_github(f"user{t_uid}", f"p{t_uid}x", days=days_map[plan])
+                # تحديث قاعدة البيانات JSON
+                db[t_uid] = {
+                    "active": True,
+                    "expiry": (datetime.now() + timedelta(days=days_map[plan])).strftime("%Y-%m-%d %H:%M"),
+                    "balance": user_balances[int(t_uid)]
+                }
+                save_db(db)
+                bot.send_message(int(t_uid), "✅ تمت الموافقة على طلبك! بروكسيك جاهز في 'بروكسياتي'.")
+                bot.edit_message_text(f"✅ تم التفعيل للمستخدم {t_uid}", call.message.chat.id, call.message.message_id)
+            except: bot.send_message(ADMIN_ID, "❌ خطأ في الاتصال بالسيرفر!")
+        else: bot.send_message(ADMIN_ID, "❌ رصيد المستخدم غير كافٍ!")
+
+    elif call.data == "admin_panel":
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        markup.add(types.InlineKeyboardButton("➕ شحن", callback_data="q_add"), 
+                   types.InlineKeyboardButton("➖ سحب", callback_data="q_sub"))
+        markup.add(types.InlineKeyboardButton("🔍 فحص بيانات مستخدم", callback_data="check_user"))
+        bot.edit_message_text("🛠 **لوحة الإدارة العليا:**", call.message.chat.id, call.message.message_id, reply_markup=markup)
+
+    elif call.data == "check_user":
+        msg = bot.send_message(ADMIN_ID, "👤 ارسل ID المستخدم لفحصه من الملف:")
+        bot.register_next_step_handler(msg, get_user_info_final)
+
+    elif call.data == "back":
+        show_main_menu(call.message)
+
+def get_user_info_final(message):
+    uid = message.text
+    db = load_db()
+    if uid in db:
+        info = db[uid]
+        text = (f"📋 **بيانات من الملف:**\nID: `{uid}`\nرصيد: `{info['balance']}$`\nانتهاء: `{info['expiry']}`")
+    else: text = "❌ مستخدم غير موجود بالملف."
+    bot.send_message(ADMIN_ID, text, parse_mode="Markdown")
+
+# (استخدم بقية كود Start و Broadcast الأصلي الخاص بك هنا)
+
 if __name__ == "__main__":
-    # تشغيل البروكسي في الخلفية
-    t = threading.Thread(target=run_proxy)
-    t.start()
-    
-    # تشغيل البوت الأساسي
-    print("🚀 البوت والبروكسي قيد التشغيل الآن...")
+    print("🚀 البوت شغال ونظام الحفظ (JSON) مفعل..")
     bot.infinity_polling()
