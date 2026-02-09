@@ -273,13 +273,7 @@ def handle_query(call):
     
     elif call.data == "back": main_menu(call.message.chat.id, uid)
 
-# --- وظائف الإدارة ---
-
-
-  ######
-def final_creation(message, uname, plan, price):
-    uid = str(message.from_user.id)
-    upass = message.text.strip()
+# --- وظائف الإدارة -
     
     # حساب الأوقات
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -332,26 +326,29 @@ def final_creation(message, uname, plan, price):
     hours = 24 if plan == "24h" else (12 if plan == "12h" else 2)
     expiry_time = (now + datetime.timedelta(hours=hours)).strftime("%Y-%m-%d %H:%M:%S")
     
-    # خصم الرصيد مع التقريب لمنع الكسور الطويلة التي ظهرت في صورتك
+    # خصم الرصيد مع التقريب
     user_balances[uid] = round(user_balances.get(uid, 0.0) - price, 2)
     
-    # حفظ الاشتراك "بالكامل" في القاموس
-    active_proxies[uid] = {
+    # التعديل الذهبي: تخزين كقائمة (List) لحفظ أكثر من اشتراك
+    if uid not in active_proxies or not isinstance(active_proxies[uid], list):
+        active_proxies[uid] = []
+        
+    active_proxies[uid].append({
         "user": uname,
         "pass": upass,
         "plan": plan,
         "start": start_time,
         "expiry": expiry_time
-    }
+    })
     
-    # استدعاء دالة الحفظ التي عدلناها في سطر 54
+    # حفظ البيانات في جيت هوب فوراً
     save_data() 
     
-    # إرسال بيانات البروكسي (هذا السطر هو الذي كان ينقصك ليرد البوت)
     server = random.choice(PROXY_SERVERS)
     res = (f"✅ **تم إنشاء البروكسي بنجاح!**\n━━━━━━━━━━━━━━\n"
            f"🌐 السيرفر: `{server}`\n👤 اليوزر: `{uname}`\n🔐 الباسورد: `{upass}`\n"
-           f"⏳ ينتهي في: `{expiry_time}`")
+           f"⏳ ينتهي في: `{expiry_time}`\n"
+           f"💰 رصيدك المتبقي: `{user_balances[uid]}$`")
     bot.send_message(message.chat.id, res, parse_mode="Markdown")
 
 def process_check_id(message):
