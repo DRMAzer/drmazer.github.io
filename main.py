@@ -20,7 +20,7 @@ SHIPPING_MSG = (
 
 # --- بيانات GitHub ---
 
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 
  
 REPO_NAME = 'DRMazer/drmazer.github.io' 
