@@ -6,7 +6,7 @@ import requests
 import base64
 import random
 
-# --- البيانات الأساسية ---
+# --- البيانات الأساسية --
 API_TOKEN = '8211772439:AAF_0tUPpyZVIAU29kWadGOg0UWSkV3L6ys'
 ADMIN_ID = 8574641551 
 CHANNEL_ID = '@midosaadoffichall' 
