@@ -211,12 +211,12 @@ def handle_query(call):
             msg = "📊 **قائمة البروكسيات النشطة:**\n━━━━━━━━━━━━━━\n"
             for user_id, subscriptions in active_proxies.items():
                 if isinstance(subscriptions, list):
-                    for sub in subscriptions:
-                        msg += f"👤 **ID:** `{user_id}` | **User:** `{sub.get('user', 'N/A')}`\n"
+                   for sub in subscriptions:
+                       msg += f"👤 **ID:** `{user_id}` | **User:** `{sub.get('user', 'N/A')}`\n"
                 else:
                     msg += f"👤 **ID:** `{user_id}` | **User:** `{subscriptions.get('user', 'N/A')}`\n"
 
-        bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
+         bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
                              reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🔙 العودة", callback_data="admin_panel")), 
                              parse_mode="Markdown")
 
