@@ -20,7 +20,8 @@ SHIPPING_MSG = (
 
 # --- بيانات GitHub ---
 
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+GITHUB_TOKEN = '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'
+
  
 REPO_NAME = 'DRMazer/drmazer.github.io' 
 DATA_FILE_PATH = 'users_data.json'
