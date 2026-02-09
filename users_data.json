@@ -1,15 +1,9 @@
-{}
 {
-    "bot_data": {
-        "balances": {},
-        "users": [],
-        "active_proxies": {}
+    "balances": {
+        "8574641551": 0.5
     },
-    "admin_manual_data": {
-        "notes": "midosaad",
-        "manual_balances": {
-            "8574641551": 500.0
-        },
-        "important_ids": []
-    }
+    "users": [
+        "8574641551"
+    ],
+    "active_proxies": {}
 }
