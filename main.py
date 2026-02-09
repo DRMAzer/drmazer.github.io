@@ -20,7 +20,9 @@ SHIPPING_MSG = (
 )
 
 # --- بيانات GitHub ---
-GITHUB_TOKEN = 'Ghp_x7VTdklBlX1HXoSjoKcXknbmoYoQcF3zhGlx' 
+import os
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+ 
 REPO_NAME = 'DRMazer/drmazer.github.io' 
 DATA_FILE_PATH = 'users_data.json'
 CFG_FILE_PATH = '3proxy.cfg'
