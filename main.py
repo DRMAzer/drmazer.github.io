@@ -216,7 +216,7 @@ def handle_query(call):
                 else:
                     msg += f"👤 **ID:** `{user_id}` | **User:** `{subscriptions.get('user', 'N/A')}`\n"
 
-         bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
+                    bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
                              reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🔙 العودة", callback_data="admin_panel")), 
                              parse_mode="Markdown")
 
