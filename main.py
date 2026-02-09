@@ -46,22 +46,41 @@ def github_manager(file_path, new_content=None, mode="read"):
     except: return {"balances": {}, "users": [], "active_proxies": {}} if mode == "read" else False
 
 # تحميل البيانات الأولية
+# تحميل البيانات بحذر
 data = github_manager(DATA_FILE_PATH, mode="read")
-user_balances = data.get("balances", {})
-user_list = set(data.get("users", []))
-active_proxies = data.get("active_proxies", {})
+
+# تأكد أن البيانات ليست None (أي لم يحدث خطأ في الاتصال)
+if data and isinstance(data, dict):
+    user_balances = data.get("balances", {})
+    user_list = set(data.get("users", []))
+    active_proxies = data.get("active_proxies", {})
+    print("💎 تم سحب بيانات المستخدمين من جيت هوب بنجاح.")
+else:
+    print("⚠️ فشل سحب البيانات! سيتم الاعتماد على آخر نسخة محفوظة ولن يتم المسح.")
+
 
 def save_data():
     global user_balances, user_list, active_proxies
-    # تحويل البيانات إلى نص JSON منظم يشمل كل الأقسام
-    content = json.dumps({
-        "balances": user_balances, 
-        "users": list(user_list), 
-        "active_proxies": active_proxies
-    }, indent=4)
-    # رفع الملف المحدث إلى GitHub فوراً
-    github_manager(DATA_FILE_PATH, content, mode="write")
+    # الحارس الشخصي: لو الرام فاضية (مفيش رصيد ولا مشتركين)، اخرج فوراً ولا تمسح جيت هوب
+    if not user_balances and not active_proxies:
+        print("🚫 تحذير: الرام فاضية! لن يتم المسح في جيت هوب.")
+        return
 
+    try:
+        content = json.dumps({
+            "balances": user_balances, 
+            "users": list(user_list), 
+            "active_proxies": active_proxies
+        }, indent=4)
+        
+        # نرفع البيانات لجيت هوب
+        success = github_manager(DATA_FILE_PATH, content, mode="write")
+        if success:
+            print("✅ تم تأمين البيانات في جيت هوب بنجاح.")
+        else:
+            print("❌ فشل الرفع لجيت هوب!")
+    except Exception as e:
+        print(f"🔥 خطأ في الحفظ: {e}")
 
 # --- القائمة الرئيسية ---
 def main_menu(chat_id, user_id):
