@@ -205,17 +205,22 @@ def handle_query(call):
     # --- وظيفة عرض النشطين (الجديدة) ---
         # --- وظيفة عرض النشطين (الجديدة) ---
     elif call.data == "adm_view" and int(uid) == ADMIN_ID:
-        # تحميل أحدث البيانات من القاموس المحلي
         if not active_proxies:
-            msg = "📭 **لا يوجد مستخدمين لديهم بروكسي نشط حالياً.**"
+            msg = "📭 **لا يوجد مستخدمين نشطين حالياً.**"
         else:
             msg = "📊 **قائمة البروكسيات النشطة:**\n━━━━━━━━━━━━━━\n"
-            for user_id, info in active_proxies.items():
-                msg += f"👤 **ID:** `{user_id}` | **User:** `{info['user']}`\n"
+            for user_id, subscriptions in active_proxies.items():
+                if isinstance(subscriptions, list):
+                    for sub in subscriptions:
+                        msg += f"👤 **ID:** `{user_id}` | **User:** `{sub.get('user', 'N/A')}`\n"
+                else:
+                    msg += f"👤 **ID:** `{user_id}` | **User:** `{subscriptions.get('user', 'N/A')}`\n"
 
         bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
                              reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🔙 العودة", callback_data="admin_panel")), 
                              parse_mode="Markdown")
+
+
 
         # سطر 144: كود زر الشحن المستقل
     elif call.data == "adm_add" and int(uid) == ADMIN_ID:
@@ -353,24 +358,24 @@ def final_creation(message, uname, plan, price):
 
 def process_check_id(message):
     if message.from_user.id != ADMIN_ID: return
-    
     target_id = message.text.strip()
     
-    # البحث المباشر في المتغير النشط حالياً
     if target_id in active_proxies:
-        info = active_proxies[target_id]
-        res = (f"📊 **تفاصيل اشتراك المستخدم:** `{target_id}`\n"
-               f"━━━━━━━━━━━━━━\n"
-               f"📦 **الباقة:** `{info.get('plan', 'غير محددة')}`\n"
-               f"👤 **اليوزر:** `{info.get('user', 'N/A')}`\n"
-               f"🔐 **الباسورد:** `{info.get('pass', 'N/A')}`\n"
-               f"📅 **وقت البدء:** `{info.get('start', 'غير مسجل')}`\n"
-               f"⏳ **وقت الانتهاء:** `{info.get('expiry', 'غير مسجل')}`\n"
-               f"━━━━━━━━━━━━━━")
+        subs = active_proxies[target_id]
+        res = f"📊 **اشتراكات المستخدم:** `{target_id}`\n━━━━━━━━━━━━━━\n"
+        
+        # لو المستخدم عنده كذا اشتراك، اعرضهم كلهم
+        if isinstance(subs, list):
+            for i, info in enumerate(subs, 1):
+                res += (f"🔹 **اشتراك رقم {i}:**\n"
+                       f"📦 الباقة: `{info.get('plan')}`\n"
+                       f"👤 اليوزر: `{info.get('user')}`\n"
+                       f"⏳ ينتهي: `{info.get('expiry')}`\n\n")
+        else:
+            res += (f"📦 الباقة: `{subs.get('plan')}`\n"
+                   f"👤 اليوزر: `{subs.get('user')}`\n"
+                   f"⏳ ينتهي: `{subs.get('expiry')}`")
     else:
-        res = f"❌ **عفواً يا مدير!**\nالـ ID ده: `{target_id}` ليس لديه أي اشتراك نشط حالياً."
+        res = f"❌ **عفواً يا مدير!**\nالـ ID: `{target_id}` ليس لديه أي اشتراك نشط."
     
     bot.send_message(ADMIN_ID, res, parse_mode="Markdown")
-
-bot.infinity_polling()
-
