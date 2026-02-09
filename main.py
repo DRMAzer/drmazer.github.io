@@ -25,7 +25,7 @@ REPO_NAME = 'DRMazer/drmazer.github.io'
 DATA_FILE_PATH = 'users_data.json'
 CFG_FILE_PATH = '3proxy.cfg'
 
-PROXY_SERVERS = ["Switchback.proxy.rlwy.net:23822", "hopper.proxy.rlwy.net:10533", "nozomi.proxy.rlwy.net:51930"]
+PROXY_SERVERS = ["interchange.proxy.rlwy.net:13021", "shuttle.proxy.rlwy.net:13813", "switchback.proxy.rlwy.net:23822", "ballast.proxy.rlwy.net:33451", "maglev.proxy.rlwy.net:42177"]
 
 bot = telebot.TeleBot(API_TOKEN)
 
