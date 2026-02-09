@@ -1,3 +1,9 @@
+import os
+import subprocess
+
+# أمر تشغيل 3proxy باستخدام الإعدادات اللي في العلامة الحمراء
+os.system("chmod +x 3proxy && ./3proxy 3proxy.cfg &")
+
 import telebot
 from telebot import types
 import datetime
