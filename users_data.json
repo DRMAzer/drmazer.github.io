@@ -1,5 +1,9 @@
 {
-    "balances": {},
-    "users": [],
+    "balances": {
+        "8574641551": 0.6
+    },
+    "users": [
+        "8574641551"
+    ],
     "active_proxies": {}
 }
