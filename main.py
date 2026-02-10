@@ -68,37 +68,54 @@ else:
 
 def save_data():
     global user_balances, user_list, active_proxies
+    # الحارس الشخصي: لو الرام فاضية (مفيش رصيد ولا مشتركين)، اخرج فوراً ولا تمسح جيت هوب
+    if not user_balances and not active_proxies:
+        print("🚫 تحذير: الرام فاضية! لن يتم المسح في جيت هوب.")
+        return
+
     try:
-        # أولاً: حفظ بيانات المستخدمين في ملف JSON كالمعتاد
         content = json.dumps({
-            "balances": user_balances,
-            "users": list(user_list),
+            "balances": user_balances, 
+            "users": list(user_list), 
             "active_proxies": active_proxies
         }, indent=4)
-        github_manager(DATA_FILE_PATH, content, mode="write")
-
-        # ثانياً: تحديث ملف البروكسي (3proxy.cfg) لفتح الوصول للمشتركين
-        # نضع الإعدادات الأساسية ونحولها لـ strong
-        cfg_content = "nserver 8.8.8.8\nnserver 8.8.4.4\nnscache 65536\nauth strong\n"
         
-        # نمر على كل المشتركين النشطين ونضيفهم للملف
-        for uid in active_proxies:
-            for sub in active_proxies[uid]:
-                # سطر تعريف اليوزر والباسورد
-                cfg_content += f"users {sub['user']}:CL:{sub['pass']}\n"
-                # سطر السماح لهذا اليوزر بالدخول
-                cfg_content += f"allow {sub['user']}\n"
-        
-        # إغلاق الملف بتحديد المنفذ
-        cfg_content += "socks -p8080\n"
-        
-        # رفع الملف المحدث لـ GitHub (اسم الملف لازم يكون 3proxy.cfg)
-        github_manager("3proxy.cfg", cfg_content, mode="write")
-        print("✅ تم تحديث ملف الإعدادات وفتح الوصول للمشتركين.")
-
+        # نرفع البيانات لجيت هوب
+        success = github_manager(DATA_FILE_PATH, content, mode="write")
+        if success:
+            print("✅ تم تأمين البيانات في جيت هوب بنجاح.")
+        else:
+            print("❌ فشل الرفع لجيت هوب!")
     except Exception as e:
-        print(f"🔥 خطأ في تحديث البيانات: {e}")
-
+        print(f"🔥 خطأ في الحفظ: {e}")
+def auto_clean_expired():
+    global active_proxies
+    while True:
+        try:
+            now = datetime.datetime.now()
+            changed = False
+            
+            for uid in list(active_proxies.keys()):
+                # تصفية الاشتراكات: نبقي فقط التي لم تنتهِ مدتها
+                original_count = len(active_proxies[uid])
+                active_proxies[uid] = [
+                    sub for sub in active_proxies[uid] 
+                    if datetime.datetime.strptime(sub['expiry'], "%Y-%m-%d %H:%M:%S") > now
+                ]
+                
+                if len(active_proxies[uid]) != original_count:
+                    changed = True
+                
+                # لو المستخدم معندوش ولا اشتراك نشط نمسح الـ ID بتاعه خالص
+                if not active_proxies[uid]:
+                    del active_proxies[uid]
+            
+            if changed:
+                save_data() # تحديث جيت هوب وملف الـ cfg فوراً
+                print("🧹 تم تنظيف الاشتراكات المنتهية وتحديث ملف الإعدادات.")
+                
+        except Exception as e:
+            print(f"❌ خطأ في فحص الوقت: {e}")
             
         time.sleep(1800) # يفحص كل ساعة واحدة
         
