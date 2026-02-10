@@ -1,3 +1,5 @@
+import threading
+import time
 import telebot
 from telebot import types
 import datetime
@@ -20,7 +22,7 @@ SHIPPING_MSG = (
 
 # --- بيانات GitHub ---
 
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 
  
 REPO_NAME = 'DRMazer/drmazer.github.io' 
@@ -43,8 +45,11 @@ def github_manager(file_path, new_content=None, mode="read"):
         sha = res['sha']
         updated_b64 = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
         payload = {"message": "Update Data", "content": updated_b64, "sha": sha}
-        requests.put(url, headers=headers, json=payload)
-        return True
+        put_res = requests.put(url, headers=headers, json=payload)
+        print(f"DEBUG: Code: {put_res.status_code}, Msg: {put_res.json()}")
+        if put_res.status_code in [200, 201]:
+            return True
+        return False
     except: return {"balances": {}, "users": [], "active_proxies": {}} if mode == "read" else False
 
 # تحميل البيانات الأولية
@@ -83,7 +88,37 @@ def save_data():
             print("❌ فشل الرفع لجيت هوب!")
     except Exception as e:
         print(f"🔥 خطأ في الحفظ: {e}")
-
+def auto_clean_expired():
+    global active_proxies
+    while True:
+        try:
+            now = datetime.datetime.now()
+            changed = False
+            
+            for uid in list(active_proxies.keys()):
+                # تصفية الاشتراكات: نبقي فقط التي لم تنتهِ مدتها
+                original_count = len(active_proxies[uid])
+                active_proxies[uid] = [
+                    sub for sub in active_proxies[uid] 
+                    if datetime.datetime.strptime(sub['expiry'], "%Y-%m-%d %H:%M:%S") > now
+                ]
+                
+                if len(active_proxies[uid]) != original_count:
+                    changed = True
+                
+                # لو المستخدم معندوش ولا اشتراك نشط نمسح الـ ID بتاعه خالص
+                if not active_proxies[uid]:
+                    del active_proxies[uid]
+            
+            if changed:
+                save_data() # تحديث جيت هوب وملف الـ cfg فوراً
+                print("🧹 تم تنظيف الاشتراكات المنتهية وتحديث ملف الإعدادات.")
+                
+        except Exception as e:
+            print(f"❌ خطأ في فحص الوقت: {e}")
+            
+        time.sleep(1800) # يفحص كل ساعة واحدة
+        
 # --- القائمة الرئيسية ---
 def main_menu(chat_id, user_id):
     bal = user_balances.get(str(user_id), 0.0)
@@ -141,6 +176,46 @@ def execute_broadcast(message):
         try: bot.send_message(int(u), message.text)
         except: continue
     bot.send_message(ADMIN_ID, "✅ تم إرسال الإذاعة للجميع.")
+# --- الدوال المفقودة (ضعها هنا) ---
+
+def get_pass_step(message, plan, price):
+    uname = message.text.strip()
+    msg = bot.send_message(message.chat.id, "🔐 ارسل **الباسورد** المطلوب للبروكسي:")
+    bot.register_next_step_handler(msg, lambda m: final_creation(m, uname, plan, price))
+
+def final_creation(message, uname, plan, price):
+    global user_balances, active_proxies
+    uid = str(message.from_user.id)
+    upass = message.text.strip()
+    
+    # حساب وقت الانتهاء
+    now = datetime.datetime.now()
+    hours = 24 if plan == "24h" else (12 if plan == "12h" else 2)
+    expiry_time = (now + datetime.timedelta(hours=hours)).strftime("%Y-%m-%d %H:%M:%S")
+    
+    # خصم الرصيد
+    user_balances[uid] = round(user_balances.get(uid, 0.0) - price, 2)
+    
+    # حفظ الاشتراك
+    if uid not in active_proxies: active_proxies[uid] = []
+    active_proxies[uid].append({
+        "user": uname,
+        "pass": upass,
+        "plan": plan,
+        "expiry": expiry_time
+    })
+    
+    save_data() # الحفظ في جيت هوب
+    
+    server = random.choice(PROXY_SERVERS)
+    res = (f"✅ **تم إنشاء البروكسي بنجاح!**\n━━━━━━━━━━━━━━\n"
+           f"🌐 السيرفر: `{server}`\n👤 اليوزر: `{uname}`\n🔐 الباسورد: `{upass}`\n"
+           f"⏳ ينتهي في: `{expiry_time}`\n"
+           f"💰 رصيدك المتبقي: `{user_balances[uid]}$`")
+    bot.send_message(message.chat.id, res, parse_mode="Markdown")
+
+# --- السطر الموجود في كودك حالياً ---
+ 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
     uid = str(call.from_user.id)
@@ -211,26 +286,22 @@ def handle_query(call):
             msg = "📊 **قائمة البروكسيات النشطة:**\n━━━━━━━━━━━━━━\n"
             for user_id, subscriptions in active_proxies.items():
                 if isinstance(subscriptions, list):
-                   for sub in subscriptions:
-                       msg += f"👤 **ID:** `{user_id}` | **User:** `{sub.get('user', 'N/A')}`\n"
+                    for sub in subscriptions:
+                        msg += f"👤 **ID:** `{user_id}` | **User:** `{sub.get('user', 'N/A')}`\n"
                 else:
                     msg += f"👤 **ID:** `{user_id}` | **User:** `{subscriptions.get('user', 'N/A')}`\n"
 
-                    bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
+        bot.edit_message_text(msg, call.message.chat.id, call.message.message_id, 
                              reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("🔙 العودة", callback_data="admin_panel")), 
                              parse_mode="Markdown")
 
-
-
-        # سطر 144: كود زر الشحن المستقل
     elif call.data == "adm_add" and int(uid) == ADMIN_ID:
-        bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id) # تنظيف العمليات القديمة
+        bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)
         msg = bot.send_message(call.message.chat.id, "👤 ارسل الآن **ID المستخدم** المراد شحن رصيده:")
         bot.register_next_step_handler(msg, lambda m: get_amount_step(m, "شحن"))
 
-    # كود زر السحب المستقل
     elif call.data == "adm_sub" and int(uid) == ADMIN_ID:
-        bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id) # تنظيف العمليات القديمة
+        bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)
         msg = bot.send_message(call.message.chat.id, "👤 ارسل الآن **ID المستخدم** المراد سحب رصيده:")
         bot.register_next_step_handler(msg, lambda m: get_amount_step(m, "سحب"))
 
@@ -274,97 +345,17 @@ def handle_query(call):
         else:
             msg = bot.send_message(call.message.chat.id, "👤 ارسل **اليوزر نيم** المطلوب:")
             bot.register_next_step_handler(msg, lambda m: get_pass_step(m, plan, price))
-
     
     elif call.data == "back": main_menu(call.message.chat.id, uid)
 
-# --- وظائف الإدارة -
-    
-    # حساب الأوقات
-    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    hours = 24 if plan == "24h" else (12 if plan == "12h" else 2)
-    expiry_dt = datetime.datetime.now() + datetime.timedelta(hours=hours)
-    expiry_time = expiry_dt.strftime("%Y-%m-%d %H:%M:%S")
-    
-    # خصم الرصيد مع التقريب
-    user_balances[uid] = round(user_balances.get(uid, 0) - price, 2)
-    
-    # حفظ التفاصيل الكاملة
-    active_proxies[uid] = {
-        "user": uname,
-        "pass": upass,
-        "plan": plan,
-        "start": start_time,
-        "expiry": expiry_time
-    }
-    
-    # --- التعديل المهم هنا: لازم نحفظ ونبعت الرسالة ---
-    save_data() 
-    
-    server = random.choice(PROXY_SERVERS)
-    res = (f"✅ **تم إنشاء البروكسي بنجاح!**\n"
-           f"━━━━━━━━━━━━━━\n"
-           f"🌐 السيرفر: `{server}`\n"
-           f"👤 اليوزر: `{uname}`\n"
-           f"🔐 الباسورد: `{upass}`\n"
-           f"⏳ ينتهي في: `{expiry_time}`\n"
-           f"━━━━━━━━━━━━━━\n"
-           f"💡 استمتع بخدمتك!")
-    
-    bot.send_message(message.chat.id, res, parse_mode="Markdown")
-
-# --- وظائف الشراء ---
-# --- وظائف الشراء ---
-def get_pass_step(message, plan, price):
-    uname = message.text.strip()
-    msg = bot.send_message(message.chat.id, "🔐 ارسل **الباسورد** المطلوب للبروكسي:")
-    bot.register_next_step_handler(msg, lambda m: final_creation(m, uname, plan, price))
-
-def final_creation(message, uname, plan, price):
-    global user_balances, active_proxies
-    uid = str(message.from_user.id)
-    upass = message.text.strip()
-    
-    # حساب الأوقات بدقة
-    now = datetime.datetime.now()
-    start_time = now.strftime("%Y-%m-%d %H:%M:%S")
-    hours = 24 if plan == "24h" else (12 if plan == "12h" else 2)
-    expiry_time = (now + datetime.timedelta(hours=hours)).strftime("%Y-%m-%d %H:%M:%S")
-    
-    # خصم الرصيد مع التقريب
-    user_balances[uid] = round(user_balances.get(uid, 0.0) - price, 2)
-    
-    # التعديل الذهبي: تخزين كقائمة (List) لحفظ أكثر من اشتراك
-    if uid not in active_proxies or not isinstance(active_proxies[uid], list):
-        active_proxies[uid] = []
-        
-    active_proxies[uid].append({
-        "user": uname,
-        "pass": upass,
-        "plan": plan,
-        "start": start_time,
-        "expiry": expiry_time
-    })
-    
-    # حفظ البيانات في جيت هوب فوراً
-    save_data() 
-    
-    server = random.choice(PROXY_SERVERS)
-    res = (f"✅ **تم إنشاء البروكسي بنجاح!**\n━━━━━━━━━━━━━━\n"
-           f"🌐 السيرفر: `{server}`\n👤 اليوزر: `{uname}`\n🔐 الباسورد: `{upass}`\n"
-           f"⏳ ينتهي في: `{expiry_time}`\n"
-           f"💰 رصيدك المتبقي: `{user_balances[uid]}$`")
-    bot.send_message(message.chat.id, res, parse_mode="Markdown")
-
+# --- وظائف معالجة البيانات ---
 def process_check_id(message):
     if message.from_user.id != ADMIN_ID: return
     target_id = message.text.strip()
-    
+    res = ""
     if target_id in active_proxies:
         subs = active_proxies[target_id]
         res = f"📊 **اشتراكات المستخدم:** `{target_id}`\n━━━━━━━━━━━━━━\n"
-        
-        # لو المستخدم عنده كذا اشتراك، اعرضهم كلهم
         if isinstance(subs, list):
             for i, info in enumerate(subs, 1):
                 res += (f"🔹 **اشتراك رقم {i}:**\n"
@@ -377,5 +368,14 @@ def process_check_id(message):
                    f"⏳ ينتهي: `{subs.get('expiry')}`")
     else:
         res = f"❌ **عفواً يا مدير!**\nالـ ID: `{target_id}` ليس لديه أي اشتراك نشط."
-    
     bot.send_message(ADMIN_ID, res, parse_mode="Markdown")
+
+# --- سطر التشغيل النهائي (أهم جزء) ---
+if __name__ == "__main__":
+    print("🚀 البوت يعمل الآن...")
+        # تشغيل مراقب الوقت في خلفية البوت
+    threading.Thread(target=auto_clean_expired, daemon=True).start()
+    
+    bot.remove_webhook()
+    bot.infinity_polling()
+  
