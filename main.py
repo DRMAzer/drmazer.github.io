@@ -81,11 +81,21 @@ def save_data():
         }, indent=4)
         
         # نرفع البيانات لجيت هوب
-        success = github_manager(DATA_FILE_PATH, content, mode="write")
+                # تجهيز محتوى ملف البروكسي
+        cfg_content = "nserver 8.8.8.8\nnserver 8.8.4.4\nnscache 65536\nauth strong\n"
+        for uid in active_proxies:
+            for sub in active_proxies[uid]:
+                cfg_content += f"users {sub['user']}:CL:{sub['pass']}\n"
+                cfg_content += f"allow {sub['user']}\n"
+        cfg_content += "socks -p8080\n"
+
+        # رفع الملفين لـ GitHub (ملف البيانات وملف الإعدادات)
+        github_manager(DATA_FILE_PATH, content, mode="write")
+        success = github_manager("3proxy.cfg", cfg_content, mode="write")
+        
         if success:
-            print("✅ تم تأمين البيانات في جيت هوب بنجاح.")
-        else:
-            print("❌ فشل الرفع لجيت هوب!")
+            print("✅ تم تأمين البيانات وتحديث الوصول للمشتركين.")
+
     except Exception as e:
         print(f"🔥 خطأ في الحفظ: {e}")
 def auto_clean_expired():
