@@ -81,13 +81,17 @@ def save_data():
         }, indent=4)
         
         # نرفع البيانات لجيت هوب
-                # تجهيز محتوى ملف البروكسي
-        cfg_content = "nserver 8.8.8.8\nnserver 8.8.4.4\nnscache 65536\nauth strong\n"
+        # تجهيز محتوى ملف البروكسي
+        cfg_content = "nserver 1.1.1.1\nnserver 8.8.8.8\nnscache 65536\nauth strong\n"
         for uid in active_proxies:
-            for sub in active_proxies[uid]:
-                cfg_content += f"users {sub['user']}:CL:{sub['pass']}\n"
-                cfg_content += f"allow {sub['user']}\n"
+              for sub in active_proxies[uid]:
+                # السطر ده بيضمن إن اليوزر المنتهي ميتكتبش في الملف
+              if datetime.datetime.strptime(sub['expiry'], "%Y-%m-%d %H:%M:%S") > datetime.datetime.now():
+                  cfg_content += f"users {sub['user']}:CL:{sub['pass']}\n"
+                  cfg_content += f"allow {sub['user']}\n"
         cfg_content += "socks -p8080\n"
+
+
 
         # رفع الملفين لـ GitHub (ملف البيانات وملف الإعدادات)
         github_manager(DATA_FILE_PATH, content, mode="write")
@@ -127,7 +131,7 @@ def auto_clean_expired():
         except Exception as e:
             print(f"❌ خطأ في فحص الوقت: {e}")
             
-        time.sleep(1800) # يفحص كل ساعة واحدة
+        time.sleep(3600) # يفحص كل ساعة واحدة
         
 # --- القائمة الرئيسية ---
 def main_menu(chat_id, user_id):
