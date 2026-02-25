@@ -12,7 +12,8 @@
                 "user": "ttt",
                 "pass": "yyy",
                 "plan": "2h",
-                "expiry": "2026-02-25 15:22:06"
+                "expiry": "2026-02-25 15:22:06",
+                "warned_1h": true
             },
             {
                 "user": "Ty",
