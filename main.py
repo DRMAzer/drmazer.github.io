@@ -131,7 +131,7 @@ def auto_clean_expired():
         except Exception as e:
             print(f"❌ خطأ في فحص الوقت: {e}")
             
-        time.sleep(200) # يفحص كل ساعة واحدة
+        time.sleep(20) # يفحص كل ساعة واحدة
         
 # --- القائمة الرئيسية ---
 def main_menu(chat_id, user_id):
