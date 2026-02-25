@@ -5,32 +5,5 @@
     "users": [
         "8574641551"
     ],
-    "active_proxies": {
-        "8574641551": [
-            {
-                "user": "mido",
-                "pass": "mido",
-                "plan": "24h",
-                "expiry": "2026-02-10 19:43:02"
-            },
-            {
-                "user": "mmm",
-                "pass": "mmm",
-                "plan": "12h",
-                "expiry": "2026-02-10 16:01:35"
-            },
-            {
-                "user": "eee",
-                "pass": "ee",
-                "plan": "24h",
-                "expiry": "2026-02-11 04:51:19"
-            },
-            {
-                "user": "ccc",
-                "pass": "ccc",
-                "plan": "24h",
-                "expiry": "2026-02-11 06:20:14"
-            }
-        ]
-    }
+    "active_proxies": {}
 }
