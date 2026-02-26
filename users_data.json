@@ -38,7 +38,7 @@
                 "pass": "mido",
                 "port": "11001",
                 "expiry": "2026-02-26 02:42:13",
-                "warned_1h": false
+                "warned_1h": true
             }
         ]
     }
