@@ -15,7 +15,7 @@
                 "pass": "yyy",
                 "plan": "2h",
                 "expiry": "2026-02-26 07:22:06",
-                "warned_1h": false
+                "warned_1h": true
             },
             {
                 "user": "A",
