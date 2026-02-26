@@ -32,13 +32,6 @@
                 "port": "11001",
                 "expiry": "2026-02-27 00:41:24",
                 "warned_1h": false
-            },
-            {
-                "user": "mido",
-                "pass": "mido",
-                "port": "11001",
-                "expiry": "2026-02-26 02:42:13",
-                "warned_1h": true
             }
         ]
     }
