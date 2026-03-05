@@ -62,26 +62,22 @@ def github_manager(file_path, new_content=None, mode="read"):
 
 def load_data():
     global user_balances, user_list, active_proxies
-    # تأمين المتغيرات بقيم فارغة كبداية عشان الكود ميفصلش
-    user_balances = {}
-    user_list = set()
-    active_proxies = {}
+    print("🔄 جاري محاولة سحب بيانات المستخدمين...")
     
-    print("🔄 محاولة الاتصال بجيت هوب لسحب البيانات...")
-    try:
-        data = github_manager(DATA_FILE_PATH, mode="read")
-        
-        if data and isinstance(data, dict):
-            user_balances = data.get("balances", {})
-            # تحويل القائمة لمجموعة (Set) لسرعة البحث
-            user_list = set(data.get("users", []))
-            active_proxies = data.get("active_proxies", {})
-            print(f"✅ تم بنجاح سحب بيانات {len(user_list)} مستخدم.")
-        else:
-            print("⚠️ البيانات المسحوبة فارغة أو التنسيق خطأ (JSON Error).")
-            # هنا شيلنا الـ exit عشان البوت يكمل ونشوف المشكلة فين
-    except Exception as e:
-        print(f"❌ خطأ تقني أثناء السحب: {e}")
+    # محاولة سحب البيانات
+    data = github_manager(DATA_FILE_PATH, mode="read")
+    
+    if data is not None and isinstance(data, dict):
+        user_balances = data.get("balances", {})
+        user_list = set(data.get("users", []))
+        active_proxies = data.get("active_proxies", {})
+        print(f"✅ تم سحب بيانات {len(user_list)} مستخدم بنجاح.")
+    else:
+        # التعديل الأهم هنا: إذا فشل السحب، البوت يتوقف فوراً ولا ينشئ ملفاً جديداً
+        print("❌ خطأ حرج: فشل سحب البيانات من GitHub!")
+        print("⚠️ تم إيقاف البوت لحماية بيانات المستخدمين من الضياع.")
+        import sys
+        sys.exit(1) # يمنع البوت من الاستمرار ومسح الملف ببيانات فارغة
 
 def save_data():
     # إعداد بداية ملف الإعدادات
