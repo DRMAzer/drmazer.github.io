@@ -21,7 +21,7 @@ SHIPPING_MSG = (
 )
 
 REPO_PATH = "DRMAzer/drmazer.github.io"
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 REPO_NAME = 'DRMazer/drmazer.github.io' 
 DATA_FILE_PATH = 'users_data.json'
 CFG_FILE_PATH = '3proxy.cfg'
