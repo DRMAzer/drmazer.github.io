@@ -62,17 +62,26 @@ def github_manager(file_path, new_content=None, mode="read"):
 
 def load_data():
     global user_balances, user_list, active_proxies
-    print("🔄 محاولة الاتصال بجيت هوب لسحب البيانات...")
-    data = github_manager(DATA_FILE_PATH, mode="read")
+    # تأمين المتغيرات بقيم فارغة كبداية عشان الكود ميفصلش
+    user_balances = {}
+    user_list = set()
+    active_proxies = {}
     
-    if data is not None:
-        user_balances = data.get("balances", {})
-        user_list = set(data.get("users", []))
-        active_proxies = data.get("active_proxies", {})
-        print(f"✅ تم بنجاح سحب بيانات {len(user_list)} مستخدم.")
-    else:
-        print("❌ فشل ذريع في السحب! البوت سيتوقف لحماية بياناتك.")
-        exit()
+    print("🔄 محاولة الاتصال بجيت هوب لسحب البيانات...")
+    try:
+        data = github_manager(DATA_FILE_PATH, mode="read")
+        
+        if data and isinstance(data, dict):
+            user_balances = data.get("balances", {})
+            # تحويل القائمة لمجموعة (Set) لسرعة البحث
+            user_list = set(data.get("users", []))
+            active_proxies = data.get("active_proxies", {})
+            print(f"✅ تم بنجاح سحب بيانات {len(user_list)} مستخدم.")
+        else:
+            print("⚠️ البيانات المسحوبة فارغة أو التنسيق خطأ (JSON Error).")
+            # هنا شيلنا الـ exit عشان البوت يكمل ونشوف المشكلة فين
+    except Exception as e:
+        print(f"❌ خطأ تقني أثناء السحب: {e}")
 
 def save_data():
     # إعداد بداية ملف الإعدادات
