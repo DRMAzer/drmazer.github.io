@@ -7,20 +7,21 @@ import json
 import requests
 import base64
 import random
+import os
+
+# سحب البيانات من إعدادات Railway مباشرة
+GITHUB_TOKEN = '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'
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+REPO_NAME = os.getenv('REPO_NAME', 'DRMAzer/drmazer.github.io')
+REPO_PATH = "DRMAzer/drmazer.github.io"
+DATA_FILE_PATH = 'users_data.json'
+CFG_FILE_PATH = '3proxy.cfg'
 
 # --- البيانات الأساسية (تم تصحيح التنسيق) ---
-API_TOKEN = '8211772439:AAFMF52bVxMIJTmqq88BTHkq-hbhKS5JfxQ'
+API_TOKEN = '8211772439:AAGvKMLwbOKTsvGNNIUdFIX-zGaKrDK0Q4I'
 ADMIN_ID = 8574641551 
 CHANNEL_ID = '@midosaadoffichall' 
 CHANNEL_LINK = "https://t.me/midosaadoffichall"
-
-# بيانات جيت هوب - تأكد أنها تبدأ من أول السطر تماماً بدون مسافات
-GITHUB_TOKEN = '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'
-REPO_PATH = "DRMAzer/drmazer.github.io"
-REPO_NAME = "DRMAzer/drmazer.github.io" 
-# المسارات الجديدة لتشمل المجلد الفرعي
-DATA_FILE_PATH = 'users_data.json'
-CFG_FILE_PATH = '3proxy.cfg'
 
 SHIPPING_MSG = (
     "💳 **لشحن رصيدك يرجى اختيار أحد الخدمات التالية:**\n\n"
