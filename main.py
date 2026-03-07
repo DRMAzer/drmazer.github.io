@@ -10,7 +10,7 @@ import random
 import os
 
 # سحب البيانات من إعدادات Railway مباشرة
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 REPO_NAME = os.getenv('REPO_NAME', 'DRMAzer/drmazer.github.io')
 REPO_PATH = "DRMAzer/drmazer.github.io"
