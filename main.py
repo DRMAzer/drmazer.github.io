@@ -18,8 +18,9 @@ CHANNEL_LINK = "https://t.me/midosaadoffichall"
 GITHUB_TOKEN = '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'
 REPO_PATH = "DRMAzer/drmazer.github.io"
 REPO_NAME = "DRMAzer/drmazer.github.io" 
-DATA_FILE_PATH = 'users_data.json'
-CFG_FILE_PATH = '3proxy.cfg'
+# المسارات الجديدة لتشمل المجلد الفرعي
+DATA_FILE_PATH = 'drmazer.github.io/users_data.json'
+CFG_FILE_PATH = 'drmazer.github.io/3proxy.cfg'
 
 SHIPPING_MSG = (
     "💳 **لشحن رصيدك يرجى اختيار أحد الخدمات التالية:**\n\n"
