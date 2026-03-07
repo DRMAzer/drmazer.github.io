@@ -9,13 +9,13 @@ import base64
 import random
 
 # --- البيانات الأساسية (تم تصحيح التنسيق) ---
-API_TOKEN = '8211772439:AAGvKMLwbOKTsvGNNIUdFIX-zGaKrDK0Q4I'
+API_TOKEN = '8211772439:AAFMF52bVxMIJTmqq88BTHkq-hbhKS5JfxQ'
 ADMIN_ID = 8574641551 
 CHANNEL_ID = '@midosaadoffichall' 
 CHANNEL_LINK = "https://t.me/midosaadoffichall"
 
 # بيانات جيت هوب - تأكد أنها تبدأ من أول السطر تماماً بدون مسافات
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 REPO_PATH = "DRMAzer/drmazer.github.io"
 REPO_NAME = "DRMAzer/drmazer.github.io" 
 DATA_FILE_PATH = 'users_data.json'
