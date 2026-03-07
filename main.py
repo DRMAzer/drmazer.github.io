@@ -19,8 +19,8 @@ GITHUB_TOKEN = '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'
 REPO_PATH = "DRMAzer/drmazer.github.io"
 REPO_NAME = "DRMAzer/drmazer.github.io" 
 # المسارات الجديدة لتشمل المجلد الفرعي
-DATA_FILE_PATH = 'drmazer.github.io/users_data.json'
-CFG_FILE_PATH = 'drmazer.github.io/3proxy.cfg'
+DATA_FILE_PATH = 'users_data.json'
+​CFG_FILE_PATH = '3proxy.cfg'
 
 SHIPPING_MSG = (
     "💳 **لشحن رصيدك يرجى اختيار أحد الخدمات التالية:**\n\n"
