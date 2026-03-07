@@ -43,35 +43,37 @@ user_list = set()
 active_proxies = {}
 
 # --- نظام إدارة GitHub ---
-def github_manager(file_path, new_content=None, mode="read"):
-    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{file_path}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    try:
-        res = requests.get(url, headers=headers).json()
-        if mode == "read":
-            content = base64.b64decode(res['content']).decode('utf-8')
-            return json.loads(content)
-        sha = res['sha']
-        updated_b64 = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-        payload = {"message": "Update Data", "content": updated_b64, "sha": sha}
-        put_res = requests.put(url, headers=headers, json=payload)
-        return put_res.status_code in [200, 201]
-    except: 
-        return None if mode == "read" else False
-
 def load_data():
-    global user_balances, user_list, active_proxies
-    print("🔄 محاولة الاتصال بجيت هوب لسحب البيانات...")
-    data = github_manager(DATA_FILE_PATH, mode="read")
+    """تحميل البيانات من GitHub مع تحليل دقيق للخطأ"""
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DATA_FILE_PATH}"
     
-    if data is not None:
-        user_balances = data.get("balances", {})
-        user_list = set(data.get("users", []))
-        active_proxies = data.get("active_proxies", {})
-        print(f"✅ تم بنجاح سحب بيانات {len(user_list)} مستخدم.")
-    else:
-        print("❌ فشل ذريع في السحب! البوت سيتوقف لحماية بياناتك.")
-        exit()
+    try:
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            content = response.json()
+            decoded_data = base64.b64decode(content['content']).decode('utf-8')
+            return json.loads(decoded_data), content['sha']
+        
+        # --- هذا الجزء سيخبرك بالخطأ بالتحديد في السجلات ---
+        else:
+            print(f"❌ فشل ذريع! كود الخطأ: {response.status_code}")
+            print(f"🔍 رسالة GitHub: {response.json().get('message')}")
+            
+            if response.status_code == 401:
+                print("💡 الحل: التوكن (GITHUB_TOKEN) غير صحيح أو انتهت صلاحيته.")
+            elif response.status_code == 403:
+                print("💡 الحل: التوكن لا يملك صلاحية 'repo'. تأكد من تفعيلها في GitHub.")
+            elif response.status_code == 404:
+                print(f"💡 الحل: لم يتم العثور على الملف في المسار: {REPO_NAME}/{DATA_FILE_PATH}")
+            
+            return None, None
+            
+    except Exception as e:
+        print(f"⚠️ خطأ غير متوقع: {str(e)}")
+        return None, None
+
 
 def save_data():
     # 1. حفظ بيانات JSON أولاً (لضمان عدم ضياع الأرصدة)
