@@ -15,7 +15,7 @@ CHANNEL_ID = '@midosaadoffichall'
 CHANNEL_LINK = "https://t.me/midosaadoffichall"
 
 # بيانات جيت هوب - تأكد أنها تبدأ من أول السطر تماماً بدون مسافات
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 REPO_PATH = "DRMAzer/drmazer.github.io"
 REPO_NAME = "DRMAzer/drmazer.github.io" 
 # المسارات الجديدة لتشمل المجلد الفرعي
