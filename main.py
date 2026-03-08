@@ -596,7 +596,10 @@ def final_gold_create(message, uname, port, plan, price):
         save_data() # هذه الدالة يجب أن ترفع الملفين لـ GitHub
         
         # 4. إرسال البيانات للمستخدم
-        host_address = "drmazer.github.io-production.up.railway.app"
+        # التعديل النهائي لعنوان الهوست في الدالة
+        host_address = "shuttle.proxy.rlwy.net"
+        fixed_port = "53940" # المنفذ الخارجي الذي منحه لك Railway
+
         success_msg = (
             f"✅ **تم تفعيل باقتك الخاصة بنجاح!**\n"
             f"━━━━━━━━━━━━━━\n"
