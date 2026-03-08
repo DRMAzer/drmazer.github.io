@@ -18,7 +18,7 @@ DATA_FILE_PATH = 'users_data.json'
 CFG_FILE_PATH = '3proxy.cfg'
 
 # --- البيانات الأساسية (تم تصحيح التنسيق) ---
-API_TOKEN = '8211772439:AAFrpRank5lon6rBekDpGS-znSZoojOFQbI'
+API_TOKEN = '8211772439:AAEVMWYmszTEWgs_vaw0dSj73treocTv_YI'
 ADMIN_ID = 8574641551 
 CHANNEL_ID = '@midosaadoffichall' 
 CHANNEL_LINK = "https://t.me/midosaadoffichall"
