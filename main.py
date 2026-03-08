@@ -88,39 +88,32 @@ def save_data():
     except Exception as e:
         print(f"❌ خطأ في حفظ بيانات JSON: {e}")
 
-    # 2. إعداد ملف 3proxy.cfg ليتناسب مع بورت Railway
+    # 2. إعداد ملف 3proxy.cfg المظبوط لشغل Railway
     cfg_content = (
         "daemon\n"
         "maxconn 1000\n"
         "nscache 65536\n"
+        "nserver 1.1.1.1\n"
+        "nserver 8.8.8.8\n"
         "timeouts 1 5 30 60 180 1800 15 60\n"
-        "setgid 65535\n"
-        "setuid 65535\n"
-        "stacksize 62768\n"
-        "flush\n"
-        "auth strong\n\n"
+        "auth strong\n"
+        "allow *\n\n" # فتحنا الباب هنا مرة واحدة للكل عشان الـ Ruleset Error تختفي
     )
 
-    # إضافة يوزرات المستخدمين (بدون حذف أي يوزر)
+    # إضافة يوزرات المستخدمين فقط (بدون allow مكرر)
     for uid, proxies in active_proxies.items():
         for proxy in proxies:
             cfg_content += f"users {proxy['user']}:CL:{proxy['pass']}\n"
-            cfg_content += f"allow {proxy['user']}\n"
 
-    # التعديل الجوهري للربط بسيرفر Railway
-    # يتم توجيه البيانات من باقة AT&T (95.169.180.49:8496) إلى بورت Railway الداخلي (8080)
-    cfg_content += "\n# الربط بالوكيل الأم (Parent Proxy)\n"
-    cfg_content += "parent 1000 socks5 95.169.180.49 8496\n"
-    
-    # تصحيح بروتوكول التشغيل ليتوافق مع Tun2TAP ويقرأ اليوزرات أعلاه
-    cfg_content += "socks -p8080 -a -n\n"
+    # تشغيل البروكسي مباشرة على إنترنت Railway السريع
+    cfg_content += "\n# تشغيل البروكسي\n"
+    cfg_content += "socks -p8080\n"
 
     # كود رفع الملف إلى GitHub
     try:
         url = f"https://api.github.com/repos/{REPO_PATH}/contents/{CFG_FILE_PATH}"
         res = requests.get(url, headers={"Authorization": f"token {GITHUB_TOKEN}"})
         
-        # جلب الـ SHA لتجنب أخطاء الـ Conflict أثناء الرفع
         sha = None
         if res.status_code == 200:
             sha = res.json().get('sha')
@@ -134,9 +127,11 @@ def save_data():
             
         put_res = requests.put(url, json=payload, headers={"Authorization": f"token {GITHUB_TOKEN}"})
         if put_res.status_code in [200, 201]:
-            print(f"✅ تم تحديث السيرفر بنجاح. بورت العميل المفتوح: 8080")
+            # هنا بنطبع البورت الحقيقي اللي هيشتغل في تطبيق Tun2TAP
+            print(f"✅ تم تحديث السيرفر. استخدم بورت الشارع: 53940")
     except Exception as e:
         print(f"❌ خطأ في تحديث GitHub: {e}")
+
 
 def auto_clean_expired():
     global active_proxies
