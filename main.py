@@ -75,6 +75,7 @@ def load_data():
         return None, None
 
 
+
 def save_data():
     # 1. حفظ بيانات JSON أولاً (لضمان عدم ضياع الأرصدة)
     try:
