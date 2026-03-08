@@ -101,7 +101,7 @@ def save_data():
         "auth strong\n\n"
     )
 
-    # إضافة يوزرات المستخدمين
+    # إضافة يوزرات المستخدمين (بدون حذف أي يوزر)
     for uid, proxies in active_proxies.items():
         for proxy in proxies:
             cfg_content += f"users {proxy['user']}:CL:{proxy['pass']}\n"
@@ -111,69 +111,32 @@ def save_data():
     # يتم توجيه البيانات من باقة AT&T (95.169.180.49:8496) إلى بورت Railway الداخلي (8080)
     cfg_content += "\n# الربط بالوكيل الأم (Parent Proxy)\n"
     cfg_content += "parent 1000 socks5 95.169.180.49 8496\n"
-    cfg_content += "proxy -p8080 -a -n\n"
+    
+    # تصحيح بروتوكول التشغيل ليتوافق مع Tun2TAP ويقرأ اليوزرات أعلاه
     cfg_content += "socks -p8080 -a -n\n"
 
     # كود رفع الملف إلى GitHub
     try:
         url = f"https://api.github.com/repos/{REPO_PATH}/contents/{CFG_FILE_PATH}"
         res = requests.get(url, headers={"Authorization": f"token {GITHUB_TOKEN}"})
-        sha = res.json().get('sha') if res.status_code == 200 else None
+        
+        # جلب الـ SHA لتجنب أخطاء الـ Conflict أثناء الرفع
+        sha = None
+        if res.status_code == 200:
+            sha = res.json().get('sha')
         
         payload = {
             "message": "Update proxy config for Railway",
             "content": base64.b64encode(cfg_content.encode()).decode(),
-            "sha": sha
         }
+        if sha:
+            payload["sha"] = sha
+            
         put_res = requests.put(url, json=payload, headers={"Authorization": f"token {GITHUB_TOKEN}"})
         if put_res.status_code in [200, 201]:
-            print(f"✅ تم تحديث السيرفر بنجاح. بورت العميل: 53940")
+            print(f"✅ تم تحديث السيرفر بنجاح. بورت العميل المفتوح: 8080")
     except Exception as e:
         print(f"❌ خطأ في تحديث GitHub: {e}")
-
-
-def auto_clean_expired():
-    global active_proxies
-    while True:
-        try:
-            now = datetime.datetime.now()
-            changed = False
-            for uid in list(active_proxies.keys()):
-                updated_subs = []
-                for sub in active_proxies[uid]:
-                    expiry_dt = datetime.datetime.strptime(sub['expiry'], "%Y-%m-%d %H:%M:%S")
-                    remaining_seconds = (expiry_dt - now).total_seconds()
-                    
-                    # تنبيه قبل ساعة من الانتهاء
-                    if 0 < remaining_seconds <= 3600 and not sub.get('warned_1h'):
-                        warn_msg = (f"⚠️ **تنبيه انتهاء الباقة**\n\nمتبقي ساعة واحدة على انتهاء البروكسي: `{sub['user']}`")
-                        markup = types.InlineKeyboardMarkup(row_width=1)
-                        markup.add(
-                            types.InlineKeyboardButton("🔄 يوم - 0.50$", callback_data=f"renew_1d_{sub['user']}"),
-                            types.InlineKeyboardButton("🔄 12 ساعة - 0.35$", callback_data=f"renew_12h_{sub['user']}"),
-                            types.InlineKeyboardButton("🔄 ساعتين - 0.20$", callback_data=f"renew_2h_{sub['user']}"), # إضافة الساعتين
-                            types.InlineKeyboardButton("🔙 العودة", callback_data="back")
-                        )
-                        try:
-                            bot.send_message(uid, warn_msg, reply_markup=markup, parse_mode="Markdown")
-                            sub['warned_1h'] = True
-                            changed = True
-                        except: pass
-                    
-                    if remaining_seconds > 0: 
-                        updated_subs.append(sub)
-                    else: 
-                        changed = True # الباقة انتهت فعلياً
-                
-                active_proxies[uid] = updated_subs
-                if not active_proxies[uid]: 
-                    del active_proxies[uid]
-            
-            if changed: 
-                save_data()
-        except Exception as e:
-            print(f"Error in auto_clean: {e}")
-        time.sleep(60)
 
 
 # --- القائمة الرئيسية ---
