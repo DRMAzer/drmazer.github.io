@@ -574,101 +574,37 @@ def final_gold_create(message, uname, port, plan, price):
     if user_balances.get(uid, 0.0) >= price:
         user_balances[uid] -= price
         
-        # 1. رسالة الانتظار أثناء المعالجة
-        wait_msg = bot.send_message(
-            message.chat.id, 
-            "⏳ **جاري تهيئة باقتك الذهبية...**",
-            parse_mode="Markdown"
-        )
-        
-        # 2. تحديد العنوان (Host) الصحيح بناءً على البورت المختار
-        host_map = {
-            "23822": "switchback.proxy.rlwy.net",
-            "13813": "shuttle.proxy.rlwy.net",
-            "13021": "interchange.proxy.rlwy.net",
-            "33451": "ballast.proxy.rlwy.net",
-            "42177": "maglev.proxy.rlwy.net"
-        }
-        # جلب العنوان المناسب للبورت، وإذا لم يوجد يستخدم الافتراضي
-        host_address = host_map.get(str(port), "interchange.proxy.rlwy.net")
-        
-        # 3. إعداد البيانات والوقت
-        days = 7  # المدة الافتراضية
-        if "1d" in plan: days = 1
-        elif "12h" in plan: days = 0.5
-        
-        expiry_date = (datetime.datetime.now() + datetime.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-        
+        # 1. تحديث قائمة البروكسيات النشطة للمستخدم
         new_proxy = {
             "user": uname,
             "pass": upass,
-            "port": port,
-            "expiry": expiry_date
+            "port": "8080", # المنفذ الموحد لـ Railway
+            "expiry": "2026-03-12" # مثال للتاريخ
         }
-        
         active_proxies.setdefault(uid, []).append(new_proxy)
+
+        # 2. تحديث ملف 3proxy.cfg برمجياً لإضافة اليوزر الجديد
+        # سنقوم بفتح ملف cfg وإضافة سطر اليوزر الجديد
+        with open('3proxy.cfg', 'a') as cfg_file:
+            cfg_file.write(f"\nusers {uname}:CL:{upass}")
+
+        # 3. حفظ البيانات ورفعها لـ GitHub (التزامن)
+        save_data() # هذه الدالة يجب أن ترفع الملفين لـ GitHub
         
-        # 4. تحديث السيرفر (رفع ملف CFG إلى GitHub)
-        save_data()
-        
-        # 5. الرسالة النهائية (تفاصيل الاستلام) - التصميم الأزرق الفاخر
-        success_details = (
-            f"💙 **Golden Package Details** 💙\n"
+        # 4. إرسال البيانات للمستخدم
+        host_address = "drmazer.github.io-production.up.railway.app"
+        success_msg = (
+            f"✅ **تم تفعيل باقتك الخاصة بنجاح!**\n"
             f"━━━━━━━━━━━━━━\n"
-            f"🌐 **IP/Host:** `{host_address}`\n"
-            f"🔢 **Port:** `{port}`\n"
+            f"🌐 **Host:** `{host_address}`\n"
+            f"🔢 **Port:** `8080`\n"
             f"👤 **User:** `{uname}`\n"
             f"🔑 **Pass:** `{upass}`\n"
-            f"⚙️ **Type:** `SOCKS5 / HTTP`\n"
-            f"━━━━━━━━━━━━━━\n"
-            f"📅 **Expiry:** `{expiry_date}`\n"
-            f"🇺🇸 **Country:** `UNITED STATES`\n"
-            f"🏢 **Provider:** `AT&T Internet @ TEXAS`\n"
-            f"🔄 **Rotation:** `30 min`\n"
-            f"🟢 **Status:** `ACTIVE`\n"
-            f"━━━━━━━━━━━━━━\n"
-            f"💡 **ملاحظة:** قد يستغرق تفعيل البيانات على السيرفر العالمي حوالي 30 ثانية.\n"
-            f"يمكنك دائماً مراجعة بياناتك من قسم **'بروكسياتي'**."
+            f"⚙️ **Type:** `SOCKS5`\n"
+            f"━━━━━━━━━━━━━━"
         )
-        
-        # تحديث رسالة الانتظار بالبيانات النهائية
-        bot.edit_message_text(
-            success_details, 
-            chat_id=message.chat.id,
-            message_id=wait_msg.message_id,
-            parse_mode="Markdown"
-        )
-    else:
-        bot.send_message(message.chat.id, "⚠️ عذراً، رصيدك غير كافٍ لإتمام العملية!")
+        bot.send_message(message.chat.id, success_msg, parse_mode="Markdown")
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
-def ask_transaction_id(call):
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔙 إلغاء والعودة للخلف", callback_data="top_up"))
-    msg = bot.send_message(call.message.chat.id, "✅ **تم اختيار الوسيلة.**\n\n📥 **الرجاء إرسال معرف الشحن الخاص بك (رقم العملية أو اسم المحول):**", reply_markup=markup, parse_mode="Markdown")
-    bot.register_next_step_handler(msg, process_amount_step)
-
-def process_amount_step(message):
-    trans_id = message.text
-    msg = bot.send_message(message.chat.id, f"📥 **تم استلام المعرف:** `{trans_id}`\n\n💰 **رجاء إدخال مبلغ الشحن بالأرقام الإنجليزية فقط (مثلاً: 5.50):**")
-    bot.register_next_step_handler(msg, final_topup_step, trans_id)
-
-def final_topup_step(message, trans_id):
-    amount = message.text
-    if not amount.replace('.', '', 1).isdigit():
-        msg = bot.send_message(message.chat.id, "❌ خطأ! يرجى إرسال المبلغ بالأرقام الإنجليزية فقط:")
-        bot.register_next_step_handler(msg, final_topup_step, trans_id)
-        return
-
-    bot.send_message(message.chat.id, "⏳ **قد يستغرق الوقت لدقائق، برجاء الانتظار وسيتم الشحن.**")
-    
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("✅ شحن المبلغ", callback_data=f"approve_{message.from_user.id}_{amount}"))
-    markup.add(types.InlineKeyboardButton("❌ رفض", callback_data=f"reject_{message.from_user.id}"))
-    
-    bot.send_message(ADMIN_ID, f"🔔 **طلب شحن جديد!**\n👤 المستخدم: `{message.from_user.id}`\n🆔 المعرف: `{trans_id}`\n💵 المبلغ: `{amount}$`", reply_markup=markup, parse_mode="Markdown")
-
-# ==========================================
 # محرك نظام الشحن والموافقة اليدوية (نهاية الملف)
 # ==========================================
 
