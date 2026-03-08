@@ -208,25 +208,7 @@ def start(message):
 
 # --- ترتيب الهاندلرز المصلح (هنا التعديل الجوهري) ---
 
-@bot.callback_query_handler(func=lambda call: call.data == "main_menu")
-def back_to_start(call):
-    uid = str(call.from_user.id)
-    bot.delete_message(call.message.chat.id, call.message.message_id)
-    main_menu(call.message.chat.id, uid)
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("sel_p_"))
-def handle_port_selection(call):
-    port = call.data.split("_")[2]
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton(f"🟣 باقة 24 ساعة - 0.50$", callback_data=f"pay_{port}_24h_0.5"),
-        types.InlineKeyboardButton(f"🔵 باقة 12 ساعة - 0.35$", callback_data=f"pay_{port}_12h_0.35"),
-        types.InlineKeyboardButton(f"⚡ باقة 2 ساعة - 0.20$", callback_data=f"pay_{port}_2h_0.2"),
-        types.InlineKeyboardButton("🔙 العودة لاختيار بورت آخر ↩️", callback_data="buy_proxy"),
-        types.InlineKeyboardButton("🏠 القائمة الرئيسية", callback_data="main_menu")
-    )
-    bot.edit_message_text(f"⏱️ **لقد اخترت بورت: {port}**\nالآن اختر مدة الاشتراك المطلوب تفعيلها:", 
-                          call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
 @bot.callback_query_handler(func=lambda call: call.data.startswith("renew_"))
 def handle_renewal(call):
     uid = str(call.from_user.id)
