@@ -138,7 +138,48 @@ def save_data():
     except Exception as e:
         print(f"❌ خطأ في تحديث GitHub: {e}")
 
-
+def auto_clean_expired():
+    global active_proxies
+    while True:
+        try:
+            now = datetime.datetime.now()
+            changed = False
+            for uid in list(active_proxies.keys()):
+                updated_subs = []
+                for sub in active_proxies[uid]:
+                    expiry_dt = datetime.datetime.strptime(sub['expiry'], "%Y-%m-%d %H:%M:%S")
+                    remaining_seconds = (expiry_dt - now).total_seconds()
+                    
+                    # تنبيه قبل ساعة من الانتهاء
+                    if 0 < remaining_seconds <= 3600 and not sub.get('warned_1h'):
+                        warn_msg = (f"⚠️ **تنبيه انتهاء الباقة**\n\nمتبقي ساعة واحدة على انتهاء البروكسي: `{sub['user']}`")
+                        markup = types.InlineKeyboardMarkup(row_width=1)
+                        markup.add(
+                            types.InlineKeyboardButton("🔄 يوم - 0.50$", callback_data=f"renew_1d_{sub['user']}"),
+                            types.InlineKeyboardButton("🔄 12 ساعة - 0.35$", callback_data=f"renew_12h_{sub['user']}"),
+                            types.InlineKeyboardButton("🔄 ساعتين - 0.20$", callback_data=f"renew_2h_{sub['user']}"), # إضافة الساعتين
+                            types.InlineKeyboardButton("🔙 العودة", callback_data="back")
+                        )
+                        try:
+                            bot.send_message(uid, warn_msg, reply_markup=markup, parse_mode="Markdown")
+                            sub['warned_1h'] = True
+                            changed = True
+                        except: pass
+                    
+                    if remaining_seconds > 0: 
+                        updated_subs.append(sub)
+                    else: 
+                        changed = True # الباقة انتهت فعلياً
+                
+                active_proxies[uid] = updated_subs
+                if not active_proxies[uid]: 
+                    del active_proxies[uid]
+            
+            if changed: 
+                save_data()
+        except Exception as e:
+            print(f"Error in auto_clean: {e}")
+        time.sleep(60)
 # --- القائمة الرئيسية ---
 def main_menu(chat_id, user_id):
     bal = user_balances.get(str(user_id), 0.0)
