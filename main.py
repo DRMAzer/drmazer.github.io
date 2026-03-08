@@ -365,52 +365,44 @@ def handle_query(call):
         bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
     # هذا هو الكود الذي ينفذ فتح الصفحة عند الضغط على الزر
     elif call.data.startswith("p_details_"):
-        target_user = call.data.split("_")[2]
-        uid = str(call.from_user.id)
-        proxy_data = next((sub for sub in active_proxies.get(uid, []) if sub['user'] == target_user), None)
-        
-        if proxy_data:
-            p_id = str(proxy_data['port'])
-            
-            # خريطة العناوين لضمان ظهور الـ Host الصحيح لكل بورت
-            host_map = {
-                "23822": "switchback.proxy.rlwy.net",
-                "13813": "shuttle.proxy.rlwy.net",
-                "13021": "interchange.proxy.rlwy.net",
-                "33451": "ballast.proxy.rlwy.net",
-                "42177": "maglev.proxy.rlwy.net"
-            }
-            host_address = host_map.get(p_id, "interchange.proxy.rlwy.net")
+    target_user = call.data.split("_")[2]
+    uid = str(call.from_user.id)
+    proxy_data = next((sub for sub in active_proxies.get(uid, []) if sub['user'] == target_user), None)
+    
+    if proxy_data:
+        # البيانات الثابتة من إعدادات Railway الحالية
+        host_address = "shuttle.proxy.rlwy.net"
+        fixed_port = "53940"
 
-            details = (
-                f"💙 **Golden Proxy Details** 💙\n"
-                f"━━━━━━━━━━━━━━\n"
-                f"🌐 **IP/Host:** `{host_address}`\n"
-                f"🔢 **Port:** `{p_id}`\n"
-                f"👤 **User:** `{proxy_data['user']}`\n"
-                f"🔑 **Pass:** `{proxy_data['pass']}`\n"
-                f"⚙️ **Type:** `SOCKS5 / HTTP`\n"
-                f"━━━━━━━━━━━━━━\n"
-                f"📅 **Expiry:** `{proxy_data['expiry']}`\n"
-                f"🇺🇸 **Country:** `UNITED STATES`\n"
-                f"🏢 **Provider:** `AT&T Internet @ TEXAS`\n"
-                f"🔄 **Rotation:** `30 min`\n"
-                f"🟢 **Status:** `ACTIVE`\n"
-                f"━━━━━━━━━━━━━━\n"
-                f"🔹 *انسخ البيانات وضعها في تطبيقك مباشرة.*"
-            )
-            
-            markup = types.InlineKeyboardMarkup().add(
-                types.InlineKeyboardButton("🔙 رجوع", callback_data=f"manage_{target_user}")
-            )
-            
-            bot.edit_message_text(
-                details, 
-                call.message.chat.id, 
-                call.message.message_id, 
-                reply_markup=markup, 
-                parse_mode="Markdown"
-            )
+        details = (
+            f"💙 **Golden Proxy Details** 💙\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"🌐 **IP/Host:** `{host_address}`\n"
+            f"🔢 **Port:** `{fixed_port}`\n"
+            f"👤 **User:** `{proxy_data['user']}`\n"
+            f"🔑 **Pass:** `{proxy_data['pass']}`\n"
+            f"⚙️ **Type:** `SOCKS5`\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"📅 **Expiry:** `{proxy_data['expiry']}`\n"
+            f"🇺🇸 **Country:** `UNITED STATES`\n"
+            f"🏢 **Provider:** `AT&T Internet @ TEXAS`\n"
+            f"🔄 **Rotation:** `30 min`\n"
+            f"🟢 **Status:** `ACTIVE`\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"🔹 *انسخ البيانات وضعها في تطبيقك مباشرة.*"
+        )
+        
+        markup = types.InlineKeyboardMarkup().add(
+            types.InlineKeyboardButton("🔙 رجوع", callback_data=f"manage_{target_user}")
+        )
+        
+        bot.edit_message_text(
+            details, 
+            call.message.chat.id, 
+            call.message.message_id, 
+            reply_markup=markup, 
+            parse_mode="Markdown"
+        )
 
     elif call.data.startswith("change_port_"):
         target_user = call.data.split("_")[2]
