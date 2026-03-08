@@ -364,7 +364,7 @@ def handle_query(call):
         
         bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
     # هذا هو الكود الذي ينفذ فتح الصفحة عند الضغط على الزر
-        elif call.data.startswith("p_details_"):
+    elif call.data.startswith("p_details_"):
         target_user = call.data.split("_")[2]
         uid = str(call.from_user.id)
         proxy_data = next((sub for sub in active_proxies.get(uid, []) if sub['user'] == target_user), None)
