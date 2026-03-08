@@ -671,7 +671,8 @@ def finalize_charge(call):
 
 
 if __name__ == "__main__":
-    load_data()
-    threading.Thread(target=auto_clean_expired, daemon=True).start()
-    print("🚀 البوت يعمل الآن...")
-    bot.infinity_polling()
+    # هذا السطر هو "المطرقة" التي تكسر أي اتصال قديم وتطرد النسخة العالقة
+    bot.remove_webhook(drop_pending_updates=True) 
+    print("✅ تم طرد أي نسخة قديمة وبدأ التشغيل الجديد...")
+    bot.infinity_polling(timeout=20, long_polling_timeout=10)
+
