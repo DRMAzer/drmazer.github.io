@@ -249,9 +249,6 @@ def handle_renewal(call):
     bot.answer_callback_query(call.id, "❌ لم يتم العثور على البروكسي.", show_alert=True)
     
 @bot.callback_query_handler(func=lambda call: call.data.startswith('renew_'))
-
-
-@bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
     uid = str(call.from_user.id)
     
@@ -622,8 +619,7 @@ def finalize_charge(call):
     
     bot.send_message(uid, f"🎉 **تم شحن حسابك بنجاح!**\n💰 القيمة: `{amount}$`", reply_markup=u_markup)
 
-
-
+@bot.callback_query_handler(func=lambda call: True)
 # اجعل هذا في نهاية الملف تماماً
 if __name__ == "__main__":
     try:
