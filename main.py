@@ -249,30 +249,7 @@ def handle_renewal(call):
     bot.answer_callback_query(call.id, "❌ لم يتم العثور على البروكسي.", show_alert=True)
     
 @bot.callback_query_handler(func=lambda call: call.data.startswith('renew_'))
-def handle_renewal(call):
-    uid = str(call.from_user.id)
-    try:
-        data = call.data.split('_')
-        duration, target_user = data[1], data[2]
-        prices = {"1d": 0.50, "12h": 0.35, "2h": 0.20}
-        hours = {"1d": 24, "12h": 12, "2h": 2}
-        cost, add_h = prices.get(duration), hours.get(duration)
-        bal = user_balances.get(uid, 0.0)
-        if bal >= cost:
-            found = False
-            for sub in active_proxies.get(uid, []):
-                if sub['user'] == target_user:
-                    old_exp = datetime.datetime.strptime(sub['expiry'], "%Y-%m-%d %H:%M:%S")
-                    sub['expiry'] = (old_exp + datetime.timedelta(hours=add_h)).strftime("%Y-%m-%d %H:%M:%S")
-                    sub['warned_1h'] = False
-                    found = True; break
-            if found:
-                user_balances[uid] = round(bal - cost, 2)
-                save_data()
-                bot.edit_message_text(f"✅ تم التجديد! رصيدك: {user_balances[uid]}$", call.message.chat.id, call.message.message_id)
-            else: bot.answer_callback_query(call.id, "❌ اليوزر غير نشط")
-        else: bot.answer_callback_query(call.id, "⚠️ رصيد غير كافٍ")
-    except: pass
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
@@ -647,10 +624,15 @@ def finalize_charge(call):
 
 
 
+# اجعل هذا في نهاية الملف تماماً
 if __name__ == "__main__":
-    # هذا السطر هو "المطرقة" التي تكسر أي اتصال قديم وتطرد النسخة العالقة
-    bot.remove_webhook()
-    bot.delete_webhook(drop_pending_updates=True)
-    print("✅ تم طرد أي نسخة قديمة وبدأ التشغيل الجديد...")
-    bot.infinity_polling(timeout=20, long_polling_timeout=10)
+    try:
+        # 1. طرد أي نسخة قديمة (حل مشكلة 409)
+        bot.delete_webhook(drop_pending_updates=True)
+        print("✅ تم تنظيف الجلسات القديمة.. البوت يعمل الآن")
+        
+        # 2. تشغيل لا نهائي (حل مشكلة الفصل في نص الكلام)
+        bot.infinity_polling(timeout=20, long_polling_timeout=10)
+    except Exception as e:
+        print(f"❌ خطأ غير متوقع: {e}")
 
